@@ -1,12 +1,9 @@
-
 from flask import Flask, jsonify
 import mysql.connector
 import os
 
 app = Flask(__name__)
 
-
-# Yhteys MariaDB-tietokantaan
 def get_db_connection():
     return mysql.connector.connect(
         host=os.getenv('DB_HOST', '127.0.0.1'),
@@ -16,21 +13,21 @@ def get_db_connection():
     )
 
 
-# Etusivu ja kävijälaskuri
 @app.route('/')
 def home():
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    # Kasvatetaan kävijämäärää yhdellä
+    # Increase the visitor counter
     cursor.execute(
         "UPDATE visits SET count = count + 1 WHERE id = 1"
     )
-
     conn.commit()
 
-    # Haetaan päivitetty kävijämäärä
-    cursor.execute("SELECT count FROM visits WHERE id = 1")
+    # Get the current visitor count
+    cursor.execute(
+        "SELECT count FROM visits WHERE id = 1"
+    )
     visits = cursor.fetchone()[0]
 
     cursor.close()
@@ -38,51 +35,58 @@ def home():
 
     return f"""
     <!DOCTYPE html>
-    <html lang="fi">
+    <html lang="en">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-        <title>Viikko 2 - Python-verkkosovellus</title>
+        <title>Week 2 - Python Web Application</title>
 
         <style>
             body {{
                 font-family: Arial, sans-serif;
-                background: #eef2f7;
-                color: #243247;
+                background-color: #f0f4f8;
                 margin: 0;
                 padding: 40px 20px;
+                text-align: center;
             }}
 
             .container {{
-                max-width: 750px;
-                margin: auto;
                 background: white;
-                padding: 35px;
-                border-radius: 15px;
-                box-shadow: 0 4px 15px #00000015;
+                max-width: 700px;
+                margin: auto;
+                padding: 40px;
+                border-radius: 12px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             }}
 
             h1 {{
-                color: #2457a7;
+                color: #2563eb;
+            }}
+
+            h2 {{
+                color: #333;
+            }}
+
+            p {{
+                color: #555;
+                line-height: 1.6;
             }}
 
             .counter {{
-                background: #2457a7;
-                color: white;
-                padding: 25px;
-                border-radius: 12px;
-                text-align: center;
-                margin: 25px 0;
-            }}
-
-            .number {{
-                font-size: 48px;
+                font-size: 36px;
                 font-weight: bold;
+                color: #2563eb;
+                margin: 20px 0;
             }}
 
             a {{
-                color: #2457a7;
+                color: #2563eb;
+                text-decoration: none;
+                font-weight: bold;
+            }}
+
+            a:hover {{
+                text-decoration: underline;
             }}
         </style>
     </head>
@@ -90,49 +94,69 @@ def home():
     <body>
         <div class="container">
 
-            <h1>Python-verkkosovellus</h1>
+            <h1>Week 2 - Python Web Application</h1>
 
             <p>
-                Tervetuloa viikon 2 verkkosovellukseen!
-                Tämä sivu on toteutettu Pythonilla ja Flaskilla.
+                Welcome to my Week 2 Linux server project!
+            </p>
+
+            <h2>About This Project</h2>
+
+            <p>
+                This website is running on an Ubuntu Linux server.
+                The application is built with Python and Flask.
+                Nginx works as a reverse proxy, and Gunicorn
+                runs the Python application.
+            </p>
+
+            <h2>Visitor Counter</h2>
+
+            <p>
+                This page has been visited:
             </p>
 
             <div class="counter">
-                <div>Sivun käyntikerrat</div>
-                <div class="number">{visits}</div>
+                {visits} times
             </div>
 
-            <h2>Toteutuksen tiedot</h2>
-
-            <ul>
-                <li>Ohjelmointikieli: Python 3</li>
-                <li>Web-sovellus: Flask</li>
-                <li>Palvelin: Gunicorn ja Nginx</li>
-                <li>Tietokanta: MariaDB</li>
-            </ul>
-
-            <h2>Kävijälaskuri ja tietokanta</h2>
-
             <p>
-                Kävijälaskuri kasvattaa käyntimäärää yhdellä
-                jokaisella sivun latauksella. Käyntimäärä
-                tallennetaan MariaDB-tietokantaan visits-tauluun.
-                Tämän ansiosta laskuri säilyy myös palvelimen
-                uudelleenkäynnistyksen jälkeen.
+                The visitor counter is stored in a MariaDB database.
+                Each page load increases the counter by one.
             </p>
 
-            <h2>Uudelleenkäynnistystesti</h2>
+            <h2>Database and Storage</h2>
 
             <p>
-                Uudelleenkäynnistystesti suoritetaan sovelluksen
-                julkaisemisen jälkeen.
+                The application uses MariaDB to store visitor data.
+                The information is saved permanently and is not
+                lost when the server restarts.
             </p>
 
-            <h2>GitHub</h2>
+            <h2>Automatic Startup</h2>
 
             <p>
-                <a href="https://github.com/KeppuliHeppuli/viikko2-flask/tree/main">
-                    Projektin lähdekoodi GitHubissa
+                Nginx, MariaDB and the Flask application start
+                automatically when the Ubuntu server boots.
+            </p>
+
+            <h2>Server Reboot Test</h2>
+
+            <p>
+                I restarted the server and verified that the
+                website was still accessible and the visitor
+                counter retained its previous value.
+            </p>
+
+            <h2>GitHub Repository</h2>
+
+            <p>
+                You can view the source code on GitHub:
+            </p>
+
+            <p>
+                <a href="https://github.com/KeppuliHeppuli/viikko2-flask"
+                   target="_blank" rel="noopener noreferrer">
+                    View Project on GitHub
                 </a>
             </p>
 
@@ -142,31 +166,10 @@ def home():
     """
 
 
-# Health check
 @app.route('/api/health')
 def health():
     return jsonify({"status": "healthy"})
 
 
-# Käyttäjien hakeminen tietokannasta
-@app.route('/api/users')
-def get_users():
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
-
-        cursor.execute("SELECT * FROM users")
-        users = cursor.fetchall()
-
-        cursor.close()
-        conn.close()
-
-        return jsonify(users)
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-
-# Kehityskäyttö
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=5000)
