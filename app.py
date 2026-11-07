@@ -131,7 +131,7 @@ def home():
             <h2>GitHub</h2>
 
             <p>
-                <a href="GITHUB_LINKKI">
+                <a href="https://github.com/KeppuliHeppuli/viikko2-flask/tree/main">
                     Projektin lähdekoodi GitHubissa
                 </a>
             </p>
